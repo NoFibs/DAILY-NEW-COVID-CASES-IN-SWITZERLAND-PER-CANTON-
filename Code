@@ -1,0 +1,98 @@
+DAILY NEW COVID CASES IN SWITZERLAND (PER CANTON)
+GROUP PROJECT
+CREATED BY ADRIATIK NIMANAJ, DAVID FÄSSLER, FLORIAN NIKQI
+10. JUNE 2022
+*************IMPORTANT*************
+*please make sure to install needed packages listed in the requirements.txt file. *
+*****************************
+"""
+import pandas as pd
+from math import pi
+import numpy as np
+from bokeh.io import output_file, show, save
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, HoverTool, FactorRange, Line
+import bokeh.palettes as bp
+import datetime as dt
+
+
+## Read data into a dataframe
+# Use data (covid cases published by BAG) stored in the url to create dataframe
+url = 'https://github.com/daenuprobst/covid19-cases-switzerland/blob/master/covid19_cases_switzerland_openzh-phase2.csv'
+rawed_url = 'https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master' \
+            '/covid19_cases_switzerland_openzh-phase2.csv '
+df = pd.read_csv(rawed_url, error_bad_lines=False)
+
+# Initialize the first row with zeros, and remove the last column 'CH' from dataframe
+df = df.iloc[0:, 0:27]
+cantons = [i for i in df.iloc[0:1]]
+cantons = cantons[1:]
+for canton in cantons:
+    df.loc[:0, canton] = 0
+
+# Fill null with the value of previous date from same canton
+df = df.ffill()
+
+
+## Calculate and smooth daily case changes
+# Compute daily new cases (dnc) for each canton, e.g. new case on Tuesday = case on Tuesday - case on Monday
+# Fill null with zeros as well
+dnc = df.copy()
+for canton in cantons:
+    dnc[canton] = dnc[canton].diff()
+    dnc.loc[:0, canton] = 0
+
+# Smooth daily new cases by the average value in a rolling window, and the window size is defined by step
+step = 3
+dnc_avg = dnc.rolling(step).mean()
+
+
+## Build a ColumnDataSource
+# Extract all canton names and dates
+date1 = [i.split('-') for i in df.Date]
+date2 = []
+date = []
+for i in date1:
+    date2.append(list(map(int, i)))
+for i in date2:
+    date.append(dt.datetime(i[0], i[1], i[2]))
+
+# Create a color list to represent different cantons in the plot
+color_palette = list(bp.Accent8 + bp.Inferno11 + bp.Viridis11)
+
+# Build a dictionary with date and each canton name as a key, i.e., {'date':[], 'TG':[], ..., 'AG':[]}
+# For each canton, the value is a list containing the averaged daily new cases
+source_dict = {'date': date}
+for canton in cantons:
+    source_dict.update({canton: [i for i in dnc_avg[canton]]})
+source = ColumnDataSource(data=source_dict)
+
+
+## Visualize the data by using Data Visualization
+# Create figure and set title (using date, dnc_avg as x,y)
+p = figure(plot_width=2000, plot_height=1200, x_axis_type="datetime", y_range=[0, 12000])
+p.title.text = 'Daily New Covid Cases in Switzerland (per Canton)'
+
+# Add the line for each canton to the figure (each line represents a canton)
+for canton, color in zip(cantons, color_palette):
+    p.line(x='date', y=canton, source=source, line_width=2, color=color, alpha=0.8, legend_label=canton, name=canton)
+
+# Add hovering tooltips to display date, canton and average daily new case (making it more user-friendly)
+    hover = HoverTool(
+        tooltips=[
+            ('date', '@date{%F}'),
+            ('canton', '$name'),
+            ('cases', '$y{0. a}'),
+        ],
+        formatters={
+            '@date': 'datetime',
+        }
+    )
+p.add_tools(hover)
+
+# Set the legend location, make the legend of the plot clickable and set the click_policy to be "hide"
+p.legend.location = 'center_left'
+p.legend.click_policy = "hide"
+
+# Show the finished Data Visualization
+show(p)
