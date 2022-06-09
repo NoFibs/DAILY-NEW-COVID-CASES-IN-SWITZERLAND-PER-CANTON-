@@ -3,7 +3,7 @@
 GROUP PROJECT @HSG
 CREATED BY ADRIATIK NIMANAJ, DAVID FÄSSLER, FLORIAN NIKQI /
 10. JUNE 2022 /
-11. Lecturer: Dr. Mario Silic
+Lecturer: Dr. Mario Silic
 
 # Covid is changing our lives drastically
 Covid has definitively changed the way we live, work, travel, pay and protect ourselves. Through the Corona virus, we have seen that we can quickly end up in a pandemic due to the strong global network. Major changes were also carried out in schools and universities, for example. The switch to virtual channels has well advanced during this period of time, which can also be seen in the course ,,Introduction to Programming’’, where the course is held completely online. Nevertheless, it is becoming increasingly apparent that we must live with the virus, especially during the cold season. This requires continuous monitoring to be able to react depending on the number of cases. 
