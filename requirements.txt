@@ -1,3 +1,4 @@
+# In order for the code to work, it is essential to install the following:
 bokeh
 pandas
 numpy
